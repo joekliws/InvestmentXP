@@ -15,6 +15,12 @@
                     .AllowAnyHeader());
             });
 
+
+        }
+
+        public static void UseApiConfiguration(this WebApplication app, IWebHostEnvironment env)
+        {
+
         }
     }
 }
