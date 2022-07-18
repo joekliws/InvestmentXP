@@ -8,10 +8,17 @@ namespace Investment.Domain.Entities
 {
     public class Asset
     {
+        [Key]
         public int AssetId { get; set; }
-        public string Company { get; set; } = string.Empty;
+
+        [Column(TypeName = "varchar(7)")]
         public string Code { get; set; } = string.Empty;
-        public decimal Volume { get; set; }
+
+        [Column(TypeName = "decimal(15, 2)")]
         public decimal Price { get; set; }
+
+        public int Quantity { get; set; }
+
+        public DateTime BoughtAt { get; set; }
     }
 }
