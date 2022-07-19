@@ -7,6 +7,8 @@ namespace Investment.API.Configuration
     {
         public static void AddConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
             services.AddDbContext<DataContext>(options =>
             {
                 string connectionStr = configuration.GetConnectionString("DefaultConnection");

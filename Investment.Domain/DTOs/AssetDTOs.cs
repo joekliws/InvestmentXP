@@ -8,20 +8,20 @@ namespace Investment.Domain.DTOs
 {
     public class AssetCreateDTO
     {
-        public int codCliente { get; set; }
-        public int codAtivo { get; set; }
-        public int qtdeAtivo { get; set; }
+        public int CodCliente { get; set; }
+        public int CodAtivo { get; set; }
+        public int QtdeAtivo { get; set; }
     }
 
     public class AssetReadDTO
     {
-        public int codAtivo { get; set; }
-        public int qtdeAtivo { get; set; }
+        public int CodAtivo { get; set; }
+        public int QtdeAtivo { get; set; }
         public decimal Valor { get; set; }
     }
 
     public class CustomerAssetReadDTO : AssetReadDTO
     {
-        public int codCliente { get; set; }
+        public int CodCliente { get; set; }
     }
 }

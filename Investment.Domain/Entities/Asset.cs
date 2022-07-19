@@ -11,8 +11,9 @@ namespace Investment.Domain.Entities
         [Key]
         public int AssetId { get; set; }
 
-        [Column(TypeName = "varchar(7)")]
-        public string Code { get; set; } = string.Empty;
+        [ForeignKey("Company")]
+        public int CompanyId { get; set; }
+        public virtual Company Company { get; set; }
 
         [Column(TypeName = "decimal(15, 2)")]
         public decimal Price { get; set; }

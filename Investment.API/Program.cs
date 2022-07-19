@@ -1,3 +1,4 @@
+global using AutoMapper;
 using Investment.API.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);

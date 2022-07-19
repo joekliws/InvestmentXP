@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace Investment.Infra.Repository
 {
-    public interface IAssetRepository { }
+    public interface IAssetRepository 
+    {
+    }
+    
     public class AssetRepository : IAssetRepository
     {
     }
