@@ -1,6 +1,22 @@
-﻿namespace Investment.API.Configuration
+﻿using Investment.Domain.Services;
+using Investment.Infra.Repository;
+
+namespace Investment.API.Configuration
 {
-    public class DependencyInjectionConfig
+    public static class DependencyInjectionConfig
     {
+        public static void AddServiceScope(this IServiceCollection services)
+        {
+            services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IAssetService, AssetService>();
+        }
+
+        public static void AddRepositoryScope(this IServiceCollection services)
+        {
+            services.AddScoped<IAccountRepository, AccountRepository>();
+            services.AddScoped<IAssetRepository, AssetRepository>();
+            services.AddScoped<ICompanyRepository, CompanyRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+        }
     }
 }

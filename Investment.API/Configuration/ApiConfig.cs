@@ -1,4 +1,5 @@
 ﻿using Investment.Infra.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace Investment.API.Configuration
 {
@@ -6,7 +7,11 @@ namespace Investment.API.Configuration
     {
         public static void AddConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddDbContext<DataContext>();
+            services.AddDbContext<DataContext>(options =>
+            {
+                string connectionStr = configuration.GetConnectionString("DefaultConnection");
+                options.UseSqlServer(connectionStr, assembly=>assembly.MigrationsAssembly("Investment.API"));
+            });
             services.AddControllers();
 
             services.AddCors(options =>
