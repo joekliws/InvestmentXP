@@ -4,6 +4,7 @@ using Investment.Infra.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Investment.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20220719194943_addPasswordColumnsdatatypes")]
+    partial class addPasswordColumnsdatatypes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -54,6 +56,9 @@ namespace Investment.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AssetId"), 1L, 1);
 
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasColumnType("varchar(7)");
@@ -69,6 +74,8 @@ namespace Investment.API.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("AssetId");
+
+                    b.HasIndex("AccountId");
 
                     b.ToTable("Assets");
                 });
@@ -150,6 +157,13 @@ namespace Investment.API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Investment.Domain.Entities.Asset", b =>
+                {
+                    b.HasOne("Investment.Domain.Entities.Account", null)
+                        .WithMany("Assets")
+                        .HasForeignKey("AccountId");
+                });
+
             modelBuilder.Entity("Investment.Domain.Entities.UserAsset", b =>
                 {
                     b.HasOne("Investment.Domain.Entities.Asset", "Asset")
@@ -167,6 +181,11 @@ namespace Investment.API.Migrations
                     b.Navigation("Asset");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Investment.Domain.Entities.Account", b =>
+                {
+                    b.Navigation("Assets");
                 });
 #pragma warning restore 612, 618
         }

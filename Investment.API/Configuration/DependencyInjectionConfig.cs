@@ -1,4 +1,4 @@
-﻿using Investment.Domain.Services;
+﻿using Investment.Infra.Services;
 using Investment.Infra.Repository;
 
 namespace Investment.API.Configuration
@@ -15,7 +15,6 @@ namespace Investment.API.Configuration
         {
             services.AddScoped<IAccountRepository, AccountRepository>();
             services.AddScoped<IAssetRepository, AssetRepository>();
-            services.AddScoped<ICompanyRepository, CompanyRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
         }
     }

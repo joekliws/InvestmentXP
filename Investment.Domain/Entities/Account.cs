@@ -24,6 +24,5 @@ namespace Investment.Domain.Entities
         [Column(TypeName = "decimal(15,2)")]
         public decimal Balance { get; set; }
         
-        public List<Asset>? Assets { get; set; }
     }
 }

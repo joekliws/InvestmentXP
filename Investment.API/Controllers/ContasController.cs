@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Investment.Domain.Helpers;
+using Investment.Infra.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Investment.API.Controllers
@@ -7,6 +9,12 @@ namespace Investment.API.Controllers
     [ApiController]
     public class ContasController : ControllerBase
     {
+        private readonly IAccountService _service;
+
+        public ContasController(IAccountService service)
+        {
+            _service = service;
+        }
 
         [HttpGet("{cod-cliente}")]
         public async Task<ActionResult> GetCustomerById (int codCliente, decimal caldo)
@@ -16,15 +24,17 @@ namespace Investment.API.Controllers
 
         
         [HttpPost("deposito")]
-        public async Task<ActionResult> Deposit(decimal depositValue)
+        public async Task<ActionResult> Deposit(Operation operation)
         {
-            return Ok(depositValue);
+            bool deposited = await _service.Deposit(operation);
+            return Ok();
         }
 
         [HttpPost("saque")]
-        public async Task<ActionResult> Withdraw(decimal depositValue)
+        public async Task<ActionResult> Withdraw(Operation operation)
         {
-            return Ok(depositValue);
+            bool withdrawn = await _service.Withdraw(operation);
+            return Ok();
         }
     }
 }

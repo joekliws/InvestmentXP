@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Investment.Domain.Services
+namespace Investment.Infra.Services
 {
     public interface IAssetService 
     {

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Investment.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20220719175247_initialMigration")]
-    partial class initialMigration
+    [Migration("20220719193857_InitialMigration")]
+    partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -59,34 +59,6 @@ namespace Investment.API.Migrations
                     b.Property<int?>("AccountId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("BoughtAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("varchar(7)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(15,2)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("AssetId");
-
-                    b.HasIndex("AccountId");
-
-                    b.ToTable("Assets");
-                });
-
-            modelBuilder.Entity("Investment.Domain.Entities.Company", b =>
-                {
-                    b.Property<int>("CompanyId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CompanyId"), 1L, 1);
-
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasColumnType("varchar(7)");
@@ -101,9 +73,11 @@ namespace Investment.API.Migrations
                     b.Property<decimal>("Volume")
                         .HasColumnType("decimal(18,2)");
 
-                    b.HasKey("CompanyId");
+                    b.HasKey("AssetId");
 
-                    b.ToTable("Companies");
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("Assets");
                 });
 
             modelBuilder.Entity("Investment.Domain.Entities.User", b =>
@@ -143,6 +117,27 @@ namespace Investment.API.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Investment.Domain.Entities.UserAsset", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AssetId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("BoughtAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId", "AssetId");
+
+                    b.HasIndex("AssetId");
+
+                    b.ToTable("UserAssets");
+                });
+
             modelBuilder.Entity("Investment.Domain.Entities.Account", b =>
                 {
                     b.HasOne("Investment.Domain.Entities.User", "User")
@@ -159,6 +154,25 @@ namespace Investment.API.Migrations
                     b.HasOne("Investment.Domain.Entities.Account", null)
                         .WithMany("Assets")
                         .HasForeignKey("AccountId");
+                });
+
+            modelBuilder.Entity("Investment.Domain.Entities.UserAsset", b =>
+                {
+                    b.HasOne("Investment.Domain.Entities.Asset", "Asset")
+                        .WithMany()
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Investment.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Asset");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Investment.Domain.Entities.Account", b =>

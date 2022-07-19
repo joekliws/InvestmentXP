@@ -5,26 +5,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Investment.API.Migrations
 {
-    public partial class initialMigration : Migration
+    public partial class InitialMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "Companies",
-                columns: table => new
-                {
-                    CompanyId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "varchar(150)", nullable: false),
-                    Code = table.Column<string>(type: "varchar(7)", nullable: false),
-                    Volume = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(15,2)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Companies", x => x.CompanyId);
-                });
-
             migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
@@ -71,10 +55,10 @@ namespace Investment.API.Migrations
                 {
                     AssetId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "varchar(150)", nullable: false),
                     Code = table.Column<string>(type: "varchar(7)", nullable: false),
+                    Volume = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(15,2)", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
-                    BoughtAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     AccountId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -87,6 +71,32 @@ namespace Investment.API.Migrations
                         principalColumn: "AccountId");
                 });
 
+            migrationBuilder.CreateTable(
+                name: "UserAssets",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    AssetId = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    BoughtAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserAssets", x => new { x.UserId, x.AssetId });
+                    table.ForeignKey(
+                        name: "FK_UserAssets_Assets_AssetId",
+                        column: x => x.AssetId,
+                        principalTable: "Assets",
+                        principalColumn: "AssetId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserAssets_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Accounts_userId",
                 table: "Accounts",
@@ -96,15 +106,20 @@ namespace Investment.API.Migrations
                 name: "IX_Assets_AccountId",
                 table: "Assets",
                 column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserAssets_AssetId",
+                table: "UserAssets",
+                column: "AssetId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Assets");
+                name: "UserAssets");
 
             migrationBuilder.DropTable(
-                name: "Companies");
+                name: "Assets");
 
             migrationBuilder.DropTable(
                 name: "Accounts");

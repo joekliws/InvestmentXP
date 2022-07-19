@@ -28,5 +28,10 @@ namespace Investment.Domain.Entities
         public string Cpf { get; set; } = string.Empty;
         public bool Inactive => RemovedAt.HasValue;
 
+        [Column(TypeName = "varbinary(64)")]
+        public byte[] PasswordSalt { get; set; }
+
+        [Column(TypeName = "varbinary(64)")]
+        public byte[] PasswordHash { get; set; }
     }
 }
