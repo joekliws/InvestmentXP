@@ -13,7 +13,7 @@ namespace Investment.Infra.Services
     public interface IAssetService 
     {
         Task<bool> Buy(AssetCreateDTO asset);
-        //Task<bool> Sell(AssetCreateDTO asset);
+        Task<bool> Sell(AssetCreateDTO asset);
         Task<List<CustomerAssetReadDTO>> GetAssetsByCustomer(int customerId);
         AssetReadDTO GetAssetById(int id);
     }
@@ -31,12 +31,19 @@ namespace Investment.Infra.Services
         }
         public async Task<bool> Buy(AssetCreateDTO asset)
         {
-            bool isValid, assetBought = false;
-            
+            bool accountExists, assetsExists, isValid, assetBought = false;
+
             // Quantidade de ativo a ser comprada não pode ser maior que a quantidade disponível na corretora
             // Compra de Ativo de ativo não pode ser feita fora dos horarios 1:00pm-8:55pm(UTC) 10:00 as 17:55(UTC-3)
             // Compra de Ativo de ativo não pode ser feita no sábado nem domingo
-            isValid = validateAsset(asset) && validateBalance(asset) && validateTimeOfCommerce();
+            accountExists = await _accountRepository.VerifyAccount(asset.CodCliente);
+            assetsExists = await _repository.VerifyAsset(asset.CodAtivo);
+            
+            isValid = validateAsset(asset) 
+                && validateBalance(asset) 
+                && validateTimeOfCommerce()
+                && accountExists
+                && assetsExists;
 
             // Subtrair do volume do ativo e da conta do cliente
             if (isValid) assetBought = await _repository.BuyAsset(asset);
@@ -45,15 +52,26 @@ namespace Investment.Infra.Services
 
         }
 
-        //public async Task<bool> Sell(AssetCreateDTO asset)
-        //{
-        //    // Quantidade de ativo a ser vendida não pode ser maior que a quantidade disponível na carteira
-        //    // Venda de Ativo de ativo não pode ser feita fora dos horarios 1:00pm-8:55pm(UTC) 10:00 as 17:55(UTC-3)
-        //    // Venda de Ativo de ativo não pode ser feita no sábado nem domingo
+        public async Task<bool> Sell(AssetCreateDTO asset)
+        {
+            bool accountExists, assetsExists, isValid, assetSold = false;
 
-        //    // Multiplicar a quantidade pelo preco do ativo
-        //    // Subtrair do saldo do cliente
-        //}
+            // Quantidade de ativo a ser vendida não pode ser maior que a quantidade disponível na carteira
+            // Venda de Ativo de ativo não pode ser feita fora dos horarios 1:00pm-8:55pm(UTC) 10:00 as 17:55(UTC-3)
+            // Venda de Ativo de ativo não pode ser feita no sábado nem domingo
+            accountExists = await _accountRepository.VerifyAccount(asset.CodCliente);
+            assetsExists = await _repository.VerifyAsset(asset.CodAtivo);
+
+            isValid = validateAsset(asset)
+                && validateTimeOfCommerce()
+                && accountExists
+                && assetsExists;
+
+            // Adicionar da conta do cliente
+            if (isValid) assetSold = await _repository.SellAsset(asset);
+
+            return assetSold;
+        }
 
         public async Task<List<CustomerAssetReadDTO>> GetAssetsByCustomer(int customerId)
         {

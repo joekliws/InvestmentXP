@@ -80,11 +80,11 @@ namespace Investment.Infra.Repository
                     boughtAsset.AssetId = cmd.CodAtivo;
                     boughtAsset.Asset = asset;
                     boughtAsset.Quantity = cmd.QtdeAtivo;
-                    boughtAsset.BoughtAt = DateTime.UtcNow;
+                    boughtAsset.UtcBoughtAt = DateTime.UtcNow;
                     
                     _context.UserAssets.Add(boughtAsset);
                     _context.SaveChanges();
-                    transaction.Commit();
+                    await transaction.CommitAsync();
                     bought = true;
                 }
                 catch (Exception e)
@@ -96,9 +96,40 @@ namespace Investment.Infra.Repository
             return bought;
         }
 
-        public Task<bool> SellAsset(AssetCreateDTO cmd)
+        public async Task<bool> SellAsset(AssetCreateDTO cmd)
         {
-            throw new NotImplementedException();
+            bool sold = false;
+
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    UserAsset soldAsset = await _context.UserAssets
+                        .FirstAsync(ua=> ua.AssetId == cmd.CodAtivo && ua.UserId == cmd.CodCliente);
+                    Asset asset = await _context.Assets.FirstAsync(ast => ast.AssetId == cmd.CodAtivo);
+                    Account account = await _context.Accounts.Include(a => a.User).FirstAsync(acc => acc.userId == cmd.CodCliente);
+
+                    account.Balance += cmd.QtdeAtivo * asset.Price;
+                    _context.Accounts.Update(account);
+                    _context.SaveChanges();
+
+                    soldAsset.UtcSoldAt = DateTime.UtcNow;
+                    _context.UserAssets.Update(soldAsset);
+                    _context.SaveChanges();
+
+                    await transaction.CommitAsync();
+                    sold = true;
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine(e.Message);
+                    transaction.Rollback();
+                }
+
+                return sold;
+
+            }
+            
         }
 
         public async Task<bool> VerifyAsset(int id)

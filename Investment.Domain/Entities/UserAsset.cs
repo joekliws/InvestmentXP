@@ -20,6 +20,8 @@ namespace Investment.Domain.Entities
 
         public int Quantity { get; set; }
 
-        public DateTime BoughtAt { get; set; }
+        public DateTime UtcBoughtAt { get; set; }
+
+        public DateTime? UtcSoldAt { get; set; }
     }
 }
