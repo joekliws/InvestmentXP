@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Investment.Domain.DTOs;
+using Investment.Infra.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Investment.API.Controllers
@@ -7,17 +9,31 @@ namespace Investment.API.Controllers
     [ApiController]
     public class AtivosController : ControllerBase
     {
-        [HttpGet("{cod-cliente}")]
-        public async Task<ActionResult> GetAssetsByCustomer(int customerId)
+        private readonly IAssetService _service;
+
+        public AtivosController(IAssetService service)
         {
-            return Ok();
+            _service = service;
+            
+        }
+
+        [HttpGet("cliente/{cod-cliente}")]
+        public async Task<ActionResult> GetAssetsByCustomer()
+        {
+            int.TryParse(Request.RouteValues["cod-cliente"].ToString(), out int customerId);
+            var response = await _service.GetAssetsByCustomer(customerId);
+            return Ok(response);
         }
 
         [HttpGet("{cod-ativo}")]
-        public async Task<ActionResult> GetAssetsById(int assetId)
+        public ActionResult GetAssetsById()
         {
-            return Ok();
+            int.TryParse(Request.RouteValues["cod-ativo"].ToString(), out int assetId);
+            var response = _service.GetAssetById(assetId);
+            return Ok(response);
         }
+
+
 
     }
 }

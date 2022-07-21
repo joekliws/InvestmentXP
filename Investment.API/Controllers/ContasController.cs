@@ -17,9 +17,11 @@ namespace Investment.API.Controllers
         }
 
         [HttpGet("{cod-cliente}")]
-        public async Task<ActionResult> GetCustomerById (int codCliente, decimal caldo)
+        public async Task<ActionResult> GetCustomerById ()
         {
-            return Ok();
+            int.TryParse(Request.RouteValues["cod-cliente"].ToString(), out int customerId);
+            var response = await _service.GetBalance(customerId);
+            return Ok(response);
         }
 
         

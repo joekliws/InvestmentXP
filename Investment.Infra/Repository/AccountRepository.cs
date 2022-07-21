@@ -1,4 +1,5 @@
 ﻿using Investment.Domain.Entities;
+using Investment.Domain.Helpers;
 using Investment.Infra.Context;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -14,6 +15,7 @@ namespace Investment.Infra.Repository
         Task<Account> GetByCustomerId(int userId);
         Task<bool> UpdateBalance(Account account);
         Task<bool> VerifyAccount(int userId);
+        Task<Operation> GetBalance(int customerId);
     }
     public class AccountRepository : IAccountRepository
     {
@@ -23,6 +25,17 @@ namespace Investment.Infra.Repository
         {
             _context = context;
         }
+
+        public async Task<Operation> GetBalance(int customerId)
+        {
+            Operation operation = new();
+            Account account = await GetByCustomerId(customerId);
+            operation.CodCliente = account.userId;
+            operation.Valor = account.Balance;
+
+            return operation;
+        }
+
         public async Task<Account> GetByCustomerId(int userId)
         {
             Account account =  await _context.Accounts.FirstAsync(acc => acc.userId == userId);

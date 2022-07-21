@@ -1,4 +1,5 @@
-﻿using Investment.Infra.Context;
+﻿using System.Text.Json.Serialization;
+using Investment.Infra.Context;
 using Microsoft.EntityFrameworkCore;
 
 namespace Investment.API.Configuration
@@ -7,18 +8,21 @@ namespace Investment.API.Configuration
     {
         public static void AddConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
             services.AddDbContext<DataContext>(options =>
             {
                 string connectionStr = configuration.GetConnectionString("DefaultConnection");
-                options.UseSqlServer(connectionStr, assembly=>assembly.MigrationsAssembly("Investment.API"));
+                options.UseSqlServer(connectionStr, assembly => assembly.MigrationsAssembly("Investment.API"));
             });
-            services.AddControllers();
+            services.AddControllers()
+                .AddJsonOptions(options =>
+                    {
+                        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+                    });
 
             services.AddCors(options =>
             {
-                options.AddPolicy("CorsPolicy", builder => 
+                options.AddPolicy("CorsPolicy", builder =>
                     builder
                     .AllowAnyOrigin()
                     .AllowAnyMethod()

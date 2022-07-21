@@ -1,41 +1,110 @@
 ﻿using Investment.Domain.DTOs;
 using Investment.Domain.Entities;
+using Investment.Infra.Context;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Investment.Infra.Repository
 {
-    public interface IAssetRepository 
+    public interface IAssetRepository
     {
         Task<Asset> GetAssetById(int id);
-        Task<List<Asset>> GetAssetsByCustomer(int customerId);
+        Task<List<UserAsset>> GetAssetsByCustomer(int customerId);
         Task<bool> BuyAsset(AssetCreateDTO cmd);
         Task<bool> SellAsset(AssetCreateDTO cmd);
+        Task<bool> VerifyAsset(int id);
     }
 
     public class AssetRepository : IAssetRepository
     {
-        public Task<Asset> GetAssetById(int id)
+
+        private readonly DataContext _context;
+
+        public AssetRepository(DataContext context)
         {
-            throw new NotImplementedException();
+            _context = context;
+        }
+        public async Task<Asset> GetAssetById(int id)
+        {
+            Asset asset = await _context.Assets.FirstAsync(ast => ast.AssetId == id);
+            return asset;
         }
 
-        public Task<List<Asset>> GetAssetsByCustomer(int customerId)
+        public async Task<List<UserAsset>> GetAssetsByCustomer(int customerId)
         {
-            throw new NotImplementedException();
+
+            List<UserAsset> assets = new();
+            try
+            {
+                assets = await _context.UserAssets
+                    .Include(ua=>ua.Asset)
+                    .Where(ua => ua.UserId == customerId)
+                    .ToListAsync();
+          
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine(e.Message);
+            }
+
+            return assets;
         }
 
-        public Task<bool> BuyAsset(AssetCreateDTO cmd)
+        public async Task<bool> BuyAsset(AssetCreateDTO cmd)
         {
-            throw new NotImplementedException();
+            bool bought = false;
+
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    UserAsset boughtAsset = new();
+                    Asset asset = await _context.Assets.FirstAsync(ast => ast.AssetId == cmd.CodAtivo);
+                    Account account = await _context.Accounts.Include(a=> a.User).FirstAsync(acc => acc.userId == cmd.CodCliente);
+                    asset.Volume -= cmd.QtdeAtivo;
+                    account.Balance -= cmd.QtdeAtivo * asset.Price;
+
+                    _context.Accounts.Update(account);
+                    _context.SaveChanges();
+                    
+                    _context.Assets.Update(asset);
+                    _context.SaveChanges();
+
+                    boughtAsset.UserId = cmd.CodCliente;
+                    boughtAsset.User = account.User;
+                    boughtAsset.AssetId = cmd.CodAtivo;
+                    boughtAsset.Asset = asset;
+                    boughtAsset.Quantity = cmd.QtdeAtivo;
+                    boughtAsset.BoughtAt = DateTime.UtcNow;
+                    
+                    _context.UserAssets.Add(boughtAsset);
+                    _context.SaveChanges();
+                    transaction.Commit();
+                    bought = true;
+                }
+                catch (Exception e)
+                {
+                    System.Diagnostics.Debug.WriteLine(e.Message);
+                    transaction.Rollback();
+                }
+            }
+            return bought;
         }
 
         public Task<bool> SellAsset(AssetCreateDTO cmd)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<bool> VerifyAsset(int id)
+        {
+            bool exists = await _context.Assets.AnyAsync(acc => acc.AssetId == id);
+            return exists;
         }
     }
 }

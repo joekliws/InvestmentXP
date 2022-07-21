@@ -14,6 +14,7 @@ namespace Investment.Infra.Services
     {
         Task<bool> Deposit(Operation operation);
         Task<bool> Withdraw(Operation operation);
+        Task<Operation> GetBalance(int custmerId);
     }
     public class AccountService : IAccountService
     {
@@ -51,6 +52,15 @@ namespace Investment.Infra.Services
 
             return result;
 
+        }
+
+        public async Task<Operation> GetBalance(int custmerId)
+        {
+            Operation operation = new();
+            var validUser = await _repository.VerifyAccount(custmerId);
+            if (validUser)
+                operation = await _repository.GetBalance(custmerId);
+            return operation;
         }
 
         public async Task<bool> Withdraw(Operation operation)
