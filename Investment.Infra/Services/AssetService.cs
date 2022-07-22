@@ -13,8 +13,8 @@ namespace Investment.Infra.Services
 {
     public interface IAssetService 
     {
-        Task<bool> Buy(AssetCreateDTO asset);
-        Task<bool> Sell(AssetCreateDTO asset);
+        Task Buy(AssetCreateDTO asset);
+        Task Sell(AssetCreateDTO asset);
         Task<List<CustomerAssetReadDTO>> GetAssetsByCustomer(int customerId);
         Task<AssetReadDTO> GetAssetById(int id);
     }
@@ -31,7 +31,7 @@ namespace Investment.Infra.Services
             _mapper = mapper;
         }
         
-        public async Task<bool> Buy(AssetCreateDTO asset)
+        public async Task Buy(AssetCreateDTO asset)
         {
             await validateAsset(asset);
 
@@ -40,17 +40,12 @@ namespace Investment.Infra.Services
             // Compra de Ativo de ativo não pode ser feita no sábado nem domingo
 
             await validateBalance(asset);
-            validateTimeOfCommerce();
-               
-
+            validateTimeOfCommerce();          
             // Subtrair do volume do ativo e da conta do cliente
-            bool assetBought = await _repository.BuyAsset(asset);
-
-            return assetBought;
-
+            await _repository.BuyAsset(asset);
         }
 
-        public async Task<bool> Sell(AssetCreateDTO asset)
+        public async Task Sell(AssetCreateDTO asset)
         {
 
             // Quantidade de ativo a ser vendida não pode ser maior que a quantidade disponível na carteira
@@ -63,9 +58,7 @@ namespace Investment.Infra.Services
                 
 
             // Adicionar da conta do cliente
-            bool assetSold = await _repository.SellAsset(asset);
-
-            return assetSold;
+            await _repository.SellAsset(asset);
         }
 
         public async Task<List<CustomerAssetReadDTO>> GetAssetsByCustomer(int customerId)

@@ -1,4 +1,6 @@
-﻿using Investment.Domain.Entities;
+﻿using AutoMapper;
+using Investment.Domain.DTOs;
+using Investment.Domain.Entities;
 using Investment.Domain.Exceptions;
 using Investment.Domain.Helpers;
 using Investment.Infra.Context;
@@ -16,13 +18,16 @@ namespace Investment.Infra.Services
         Task<bool> Deposit(Operation operation);
         Task<bool> Withdraw(Operation operation);
         Task<Operation> GetBalance(int custmerId);
+        Task<AccountReadDTO> CreateAccount(AccountCreateDTO cmd);
     }
     public class AccountService : IAccountService
     {
+        private readonly IMapper _mapper;
         private readonly IAccountRepository _repository;
 
-        public AccountService(IAccountRepository repository)
+        public AccountService(IAccountRepository repository, IMapper mapper)
         {
+            _mapper = mapper;
             _repository = repository;
         }
 
@@ -102,6 +107,15 @@ namespace Investment.Infra.Services
             if (operation.Valor > account.Balance)
                 throw new InvalidPropertyException("Valor a ser retirado não pode ser maior do que da carteira");
             
+        }
+
+        public async Task<AccountReadDTO> CreateAccount(AccountCreateDTO cmd)
+        {
+            Account newAccount = await _repository.CreateAccount(cmd);
+            if (newAccount == null) throw new InvalidPropertyException("Houve algum problema ao criar conta");
+            AccountReadDTO response = _mapper.Map<AccountReadDTO>(newAccount);
+            return response;
+
         }
     }
 }

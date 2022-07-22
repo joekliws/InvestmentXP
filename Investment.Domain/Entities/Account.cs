@@ -22,7 +22,7 @@ namespace Investment.Domain.Entities
         public virtual User User { get; set; } = new User();
 
         [Column(TypeName = "decimal(15,2)")]
-        public decimal Balance { get; set; }
+        public decimal Balance { get; set; } = 0;
         
     }
 }

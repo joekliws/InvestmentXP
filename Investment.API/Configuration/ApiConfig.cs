@@ -46,6 +46,8 @@ namespace Investment.API.Configuration
 
             app.UseAuthorization();
 
+            app.UseAuthentication();
+
             app.MapControllers();
 
         }

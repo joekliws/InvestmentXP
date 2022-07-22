@@ -12,8 +12,8 @@ namespace Investment.Domain.Exceptions
         public InvalidPropertyException(string message) : base(message) { }
     }
 
-    public class NotAuthorizedException : Exception
+    public class UnauthorizedException : Exception
     {
-        public NotAuthorizedException(string message) : base(message) { }
+        public UnauthorizedException(string message) : base(message) { }
     }
 }

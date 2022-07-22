@@ -9,6 +9,7 @@ namespace Investment.API.Configuration
         {
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IAssetService, AssetService>();
+            services.AddScoped<IAuthService, AuthService>();
         }
 
         public static void AddRepositoryScope(this IServiceCollection services)

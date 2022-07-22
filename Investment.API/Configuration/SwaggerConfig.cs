@@ -4,7 +4,7 @@ namespace Investment.API.Configuration
 {
     public static class SwaggerConfig
     {
-        public static void AddSwaggerConfiguration (this IServiceCollection services)
+        public static void AddSwaggerConfiguration(this IServiceCollection services)
         {
             services.AddSwaggerGen(setup =>
             {
@@ -12,7 +12,32 @@ namespace Investment.API.Configuration
                 {
                     Title = "Investing XP API",
                     Description = "TESTE TÉCNICO XP - API de Compra e Venda de Ativos",
-                    Contact = new OpenApiContact() { Name = "Wilk Morais", Email = "wilkj.ms@gmail.com", Url= new Uri("https://github.com/joekliws")}
+                    Contact = new OpenApiContact() { Name = "Wilk Morais", Email = "wilkj.ms@gmail.com", Url = new Uri("https://github.com/joekliws") }
+                });
+
+                setup.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Name = "Authorization",
+                    Description = "Bearer Authentication with JWT Token",
+                    Type = SecuritySchemeType.Http
+                });
+
+                setup.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] {}
+                    }
                 });
             });
         }

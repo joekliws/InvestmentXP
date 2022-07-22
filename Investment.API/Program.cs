@@ -10,6 +10,8 @@ builder.Services.AddConfiguration(builder.Configuration);
 
 builder.Services.AddSwaggerConfiguration();
 
+builder.Services.AddJwtConfiguration(builder.Configuration);
+
 builder.Services.AddServiceScope();
 
 builder.Services.AddRepositoryScope();

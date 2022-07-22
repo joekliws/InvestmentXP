@@ -7,6 +7,8 @@ namespace Investment.API.Configuration
     {
         public MapperProfile()
         {
+            CreateMap<Account, AccountReadDTO>();
+
             CreateMap<Asset, AssetReadDTO>().
                 ForMember(dest => dest.CodAtivo, opt => opt.MapFrom(src => src.AssetId))
                 .ForMember(dest => dest.Valor, opt => opt.MapFrom(src => src.Price))

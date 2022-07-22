@@ -1,5 +1,6 @@
 ﻿using Investment.Domain.DTOs;
 using Investment.Infra.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,6 +8,7 @@ namespace Investment.API.Controllers
 {
     [Route("investimentos")]
     [ApiController]
+    [Authorize]
     public class InvestimentosController : ControllerBase
     {
         private readonly IAssetService _service;
