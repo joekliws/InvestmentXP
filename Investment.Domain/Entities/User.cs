@@ -33,5 +33,7 @@ namespace Investment.Domain.Entities
 
         [Column(TypeName = "varbinary(64)")]
         public byte[] PasswordHash { get; set; }
+        public ICollection<UserAsset>? Assets { get; set; }
+
     }
 }

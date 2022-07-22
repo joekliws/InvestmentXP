@@ -43,7 +43,7 @@ namespace Investment.API.Migrations
 
                     b.HasIndex("userId");
 
-                    b.ToTable("Accounts");
+                    b.ToTable("Accounts", (string)null);
                 });
 
             modelBuilder.Entity("Investment.Domain.Entities.Asset", b =>
@@ -70,7 +70,7 @@ namespace Investment.API.Migrations
 
                     b.HasKey("AssetId");
 
-                    b.ToTable("Assets");
+                    b.ToTable("Assets", (string)null);
                 });
 
             modelBuilder.Entity("Investment.Domain.Entities.User", b =>
@@ -115,7 +115,7 @@ namespace Investment.API.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Investment.Domain.Entities.UserAsset", b =>
@@ -139,7 +139,7 @@ namespace Investment.API.Migrations
 
                     b.HasIndex("AssetId");
 
-                    b.ToTable("UserAssets");
+                    b.ToTable("UserAssets", (string)null);
                 });
 
             modelBuilder.Entity("Investment.Domain.Entities.Account", b =>

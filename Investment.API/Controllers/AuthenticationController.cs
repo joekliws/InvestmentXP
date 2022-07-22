@@ -24,7 +24,7 @@ namespace Investment.API.Controllers
             if (isLoggedin.Value)
             {
                 string token = _service.GenerateToken(isLoggedin.Key);
-                return Ok(new {Message = "Welcome!"});
+                return Ok(new {Token = token});
             }
             return Unauthorized();
         }

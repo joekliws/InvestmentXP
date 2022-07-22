@@ -63,7 +63,7 @@ namespace Investment.Infra.Services
 
         public async Task<List<CustomerAssetReadDTO>> GetAssetsByCustomer(int customerId)
         {
-            await validatePropertyExists(customerId: customerId);
+            await validateAccountExists(customerId);
 
             List<UserAsset> assets = await _repository.GetAssetsByCustomer(customerId);
             var response = _mapper.Map<List<CustomerAssetReadDTO>>(assets);
@@ -72,9 +72,9 @@ namespace Investment.Infra.Services
 
         public async Task<AssetReadDTO> GetAssetById(int id)
         {
-            await validatePropertyExists(assetId: id);
-
             var asset = await _repository.GetAssetById(id);
+            validateAssetExists(id, asset);
+
             var response = _mapper.Map<AssetReadDTO>(asset);
             return response;
         }
@@ -93,17 +93,23 @@ namespace Investment.Infra.Services
 
         }
 
-        private async Task validatePropertyExists(int customerId = 0, int assetId = 0)
+        private async Task validateAccountExists(int customerId)
         {
-            bool accountNotExists = ! await _accountRepository.VerifyAccount(customerId);
-            bool assetNotExists = !await  _repository.VerifyAsset(assetId);
+            if (customerId <= 0) throw new InvalidPropertyException("Conta não encontrada. ID inválido");
 
-            if (accountNotExists && customerId > 0) throw new NotFoundException("Conta não encontrada");
-
-            if (assetNotExists && assetId > 0) throw new NotFoundException("Ativo não encontrada");
+            bool accountExists = await _accountRepository.VerifyAccount(customerId);
+            if (!accountExists) throw new NotFoundException("Conta não encontrada com ID informado");
 
         }
-    
+
+        private void validateAssetExists(int id, Asset? asset)
+        {
+            if (id <= 0) throw new InvalidPropertyException("Ativo não encontrado. ID inválido");
+
+            if (asset == null) throw new NotFoundException("Ativo não encontrado com ID informado");
+
+        }
+
         private async Task validateBalance(AssetCreateDTO cmd)
         {
             Asset asset = await _repository.GetAssetById(cmd.CodAtivo);
@@ -128,7 +134,7 @@ namespace Investment.Infra.Services
         private void validateTimeOfCommerce()
         {
             var timeOpenning = DateTime.Today.AddHours(13);
-            var timeClosed = DateTime.Today.AddHours(20).AddMinutes(55);
+            var timeClosed = DateTime.Today.AddHours(23).AddMinutes(55);
 
             bool isValid = DateTime.UtcNow >= timeOpenning 
                 && DateTime.UtcNow <= timeClosed 

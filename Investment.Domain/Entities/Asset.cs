@@ -22,5 +22,7 @@ namespace Investment.Domain.Entities
 
         [Column(TypeName = "decimal(15, 2)")]
         public decimal Price { get; set; }
+
+        public ICollection<UserAsset>? Assets { get; set; }
     }
 }

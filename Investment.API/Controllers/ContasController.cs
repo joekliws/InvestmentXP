@@ -40,15 +40,15 @@ namespace Investment.API.Controllers
         [HttpPost("deposito")]
         public async Task<ActionResult> Deposit(Operation operation)
         {
-            bool deposited = await _service.Deposit(operation);
-            return Ok();
+            await _service.Deposit(operation);
+            return Ok(new {message = "Operação realizada com sucesso"});
         }
 
         [HttpPost("saque")]
         public async Task<ActionResult> Withdraw(Operation operation)
         {
-            bool withdrawn = await _service.Withdraw(operation);
-            return Ok();
+            await _service.Withdraw(operation);
+            return Ok(new { message = "Operação realizada com sucesso" });
         }
     }
 }

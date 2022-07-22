@@ -13,7 +13,7 @@ namespace Investment.Infra.Repository
 {
     public interface IAssetRepository
     {
-        Task<Asset> GetAssetById(int id);
+        Task<Asset?> GetAssetById(int id);
         Task<List<UserAsset>> GetAssetsByCustomer(int customerId);
         Task<bool> BuyAsset(AssetCreateDTO cmd);
         Task<bool> SellAsset(AssetCreateDTO cmd);
@@ -30,9 +30,17 @@ namespace Investment.Infra.Repository
         {
             _context = context;
         }
-        public async Task<Asset> GetAssetById(int id)
+        public async Task<Asset?> GetAssetById(int id)
         {
-            Asset asset = await _context.Assets.FirstAsync(ast => ast.AssetId == id);
+            Asset? asset = new();
+            try
+            {
+            asset = await _context.Assets.FirstOrDefaultAsync(ast => ast.AssetId == id);
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine(e);
+            }
             return asset;
         }
 
@@ -42,11 +50,8 @@ namespace Investment.Infra.Repository
             List<UserAsset> assets = new();
             try
             {
-                assets = await _context.UserAssets
-                    .Include(ua=>ua.Asset)
-                    .Where(ua => ua.UserId == customerId)
-                    .ToListAsync();
-          
+                assets = await _context.UserAssets.Include(ua=>ua.Asset)
+                    .Where(ua => ua.UserId == customerId).ToListAsync();                                    
             }
             catch (Exception e)
             {
@@ -64,26 +69,29 @@ namespace Investment.Infra.Repository
             {
                 try
                 {
-                    UserAsset boughtAsset = new();
+                    UserAsset? boughtAsset = await _context.UserAssets.FirstOrDefaultAsync(ast => ast.AssetId == cmd.CodAtivo && ast.UserId == cmd.CodCliente);
                     Asset asset = await _context.Assets.FirstAsync(ast => ast.AssetId == cmd.CodAtivo);
                     Account account = await _context.Accounts.Include(a=> a.User).FirstAsync(acc => acc.userId == cmd.CodCliente);
                     asset.Volume -= cmd.QtdeAtivo;
                     account.Balance -= cmd.QtdeAtivo * asset.Price;
-
+            
                     _context.Accounts.Update(account);
                     _context.SaveChanges();
                     
                     _context.Assets.Update(asset);
                     _context.SaveChanges();
 
-                    boughtAsset.UserId = cmd.CodCliente;
-                    boughtAsset.User = account.User;
-                    boughtAsset.AssetId = cmd.CodAtivo;
-                    boughtAsset.Asset = asset;
-                    boughtAsset.Quantity = cmd.QtdeAtivo;
-                    boughtAsset.UtcBoughtAt = DateTime.UtcNow;
-                    
-                    _context.UserAssets.Add(boughtAsset);
+                    if (boughtAsset == null)
+                    {
+                        boughtAsset = CreateBoughtAsset(cmd, account.User, asset);
+                        _context.UserAssets.Add(boughtAsset);
+
+                    } else
+                    {
+                        var updatedBoughtAsset = UpdateBoughtAsset(boughtAsset, cmd);
+                        _context.UserAssets.Update(updatedBoughtAsset);
+                    }
+                   
                     _context.SaveChanges();
                     await transaction.CommitAsync();
                     bought = true;
@@ -143,6 +151,27 @@ namespace Investment.Infra.Repository
         {
             bool exists = await _context.UserAssets.AnyAsync(acc => acc.AssetId == id && acc.UserId == customerId && acc.UtcSoldAt == null);
             return exists;
+        }
+
+        private UserAsset CreateBoughtAsset(AssetCreateDTO cmd, User user, Asset asset)
+        {
+            return new UserAsset
+            {
+                UserId = cmd.CodCliente,
+                User = user,
+                AssetId = cmd.CodAtivo,
+                Asset = asset,
+                Quantity = cmd.QtdeAtivo,
+                UtcBoughtAt = DateTime.UtcNow,
+            };
+        }
+
+        private UserAsset UpdateBoughtAsset(UserAsset userAsset, AssetCreateDTO cmd)
+        {
+           userAsset.Quantity += cmd.QtdeAtivo;
+           userAsset.UtcBoughtAt = DateTime.UtcNow;
+            return userAsset;
+
         }
     }
 }

@@ -20,6 +20,16 @@ namespace Investment.Infra.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<UserAsset>().HasKey(bc => new { bc.UserId, bc.AssetId });
+
+            modelBuilder.Entity<UserAsset>()
+                .HasOne(ua => ua.User)
+                .WithMany(u => u.Assets)
+                .HasForeignKey(ua => ua.UserId);
+
+            modelBuilder.Entity<UserAsset>()
+                .HasOne(ua => ua.Asset)
+                .WithMany(u => u.Assets)
+                .HasForeignKey(ua => ua.AssetId);
          
         }
     }

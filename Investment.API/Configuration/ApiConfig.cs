@@ -12,7 +12,7 @@ namespace Investment.API.Configuration
             services.AddDbContext<DataContext>(options =>
             {
                 string connectionStr = configuration.GetConnectionString("DefaultConnection");
-                options.UseSqlServer(connectionStr, assembly => assembly.MigrationsAssembly("Investment.API"));
+                options.UseSqlServer(connectionStr, assembly => assembly.MigrationsAssembly("Investment.API"));         
             });
 
             services.AddTransient<AppExceptionMiddleware>();
@@ -44,9 +44,9 @@ namespace Investment.API.Configuration
 
             app.UseMiddleware<AppExceptionMiddleware>();
 
-            app.UseAuthorization();
-
             app.UseAuthentication();
+
+            app.UseAuthorization();
 
             app.MapControllers();
 

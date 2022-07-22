@@ -15,8 +15,8 @@ namespace Investment.Infra.Services
 {
     public interface IAccountService
     {
-        Task<bool> Deposit(Operation operation);
-        Task<bool> Withdraw(Operation operation);
+        Task Deposit(Operation operation);
+        Task Withdraw(Operation operation);
         Task<Operation> GetBalance(int custmerId);
         Task<AccountReadDTO> CreateAccount(AccountCreateDTO cmd);
     }
@@ -31,11 +31,9 @@ namespace Investment.Infra.Services
             _repository = repository;
         }
 
-        public async Task<bool> Deposit(Operation operation)
+        public async Task Deposit(Operation operation)
         {
-            bool result = false;
-            try
-            {
+
                 // verfificar se usuario esta logado
 
                 // verificar se o token é valido
@@ -44,15 +42,7 @@ namespace Investment.Infra.Services
                await validateOperation(operation);
                     var account = await _repository.GetByCustomerId(operation.CodCliente);
                     account.Balance += operation.Valor;
-                    result = await _repository.UpdateBalance(account);
-               
-            } catch (Exception e)
-            {
-                System.Diagnostics.Debug.WriteLine(e.Message);
-            }
-
-            return result;
-
+               await _repository.UpdateBalance(account);          
         }
 
         public async Task<Operation> GetBalance(int custmerId)
@@ -64,11 +54,9 @@ namespace Investment.Infra.Services
             return operation;
         }
 
-        public async Task<bool> Withdraw(Operation operation)
+        public async Task Withdraw(Operation operation)
         {
-            bool result = false;
-            try
-            {
+
                 // verfificar se usuario esta logado
 
                 // verificar se o token é valido
@@ -81,24 +69,15 @@ namespace Investment.Infra.Services
                 validateBalance(operation, account);
 
                 account.Balance -= operation.Valor;
-                result = await _repository.UpdateBalance(account);
-            }
-            catch (Exception e)
-            {
-                System.Diagnostics.Debug.WriteLine(e.Message);
-            }
-            return result;
+                await _repository.UpdateBalance(account);         
         }
 
-        private async Task validateOperation(Operation operation, bool isWithdraw = false)
+        private async Task validateOperation(Operation operation)
         {
             bool accountExists = await _repository.VerifyAccount(operation.CodCliente);
             
-
-
-            if (operation.Valor <= 0 || accountExists)
-                throw new InvalidPropertyException("dados inválidos");
-            
+            if (operation.Valor <= 0 || !accountExists)
+                throw new InvalidPropertyException("dados inválidos");     
         }
 
         private void validateBalance(Operation operation, Account account)

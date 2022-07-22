@@ -20,7 +20,7 @@ namespace Investment.API.Controllers
         }
 
         [HttpGet("cliente/{cod-cliente}")]
-        public async Task<ActionResult> GetAssetsByCustomer()
+        public async Task<ActionResult<IEnumerable<CustomerAssetReadDTO>>> GetAssetsByCustomer()
         {
             int.TryParse(Request.RouteValues["cod-cliente"].ToString(), out int customerId);
             var response = await _service.GetAssetsByCustomer(customerId);
@@ -28,10 +28,10 @@ namespace Investment.API.Controllers
         }
 
         [HttpGet("{cod-ativo}")]
-        public ActionResult GetAssetsById()
+        public async Task<ActionResult<AssetReadDTO>> GetAssetsById()
         {
             int.TryParse(Request.RouteValues["cod-ativo"].ToString(), out int assetId);
-            var response = _service.GetAssetById(assetId);
+            var response = await _service.GetAssetById(assetId);
             return Ok(response);
         }
 
