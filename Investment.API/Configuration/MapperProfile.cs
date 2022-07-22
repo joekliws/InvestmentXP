@@ -19,7 +19,17 @@ namespace Investment.API.Configuration
                 .ForPath(dest => dest.CodCliente, opt => opt.MapFrom(src => src.UserId))
                 .ForPath(dest => dest.QtdeAtivo, opt => opt.MapFrom(src => src.Quantity))
                 .ForPath(dest => dest.Valor, opt => opt.MapFrom(src => src.Asset.Price * src.Quantity));
-           // CreateMap<Account, AccountReadDTO>();
+           
+            CreateMap<Account, AccountReadDTO>()
+                .ForMember(dest => dest.User, opt=> opt.MapFrom(src => new UserReadDTO()
+                    {
+                        FirstName = src.User.FirstName,
+                        LastName = src.User.LastName,
+                        PreferedName = src.User.PreferedName,
+                        Cpf = src.User.Cpf,
+                        InvestorStyle = src.User.InvestorStyle         
+                    })
+                );
 
         }
     }

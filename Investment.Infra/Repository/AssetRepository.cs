@@ -71,7 +71,7 @@ namespace Investment.Infra.Repository
                 {
                     UserAsset? boughtAsset = await _context.UserAssets.FirstOrDefaultAsync(ast => ast.AssetId == cmd.CodAtivo && ast.UserId == cmd.CodCliente);
                     Asset asset = await _context.Assets.FirstAsync(ast => ast.AssetId == cmd.CodAtivo);
-                    Account account = await _context.Accounts.Include(a=> a.User).FirstAsync(acc => acc.userId == cmd.CodCliente);
+                    Account account = await _context.Accounts.Include(a=> a.User).FirstAsync(acc => acc.UserId == cmd.CodCliente);
                     asset.Volume -= cmd.QtdeAtivo;
                     account.Balance -= cmd.QtdeAtivo * asset.Price;
             
@@ -116,7 +116,7 @@ namespace Investment.Infra.Repository
                     UserAsset soldAsset = await _context.UserAssets
                         .FirstAsync(ua=> ua.AssetId == cmd.CodAtivo && ua.UserId == cmd.CodCliente);
                     Asset asset = await _context.Assets.FirstAsync(ast => ast.AssetId == cmd.CodAtivo);
-                    Account account = await _context.Accounts.Include(a => a.User).FirstAsync(acc => acc.userId == cmd.CodCliente);
+                    Account account = await _context.Accounts.Include(a => a.User).FirstAsync(acc => acc.UserId == cmd.CodCliente);
 
                     account.Balance += cmd.QtdeAtivo * asset.Price;
                     _context.Accounts.Update(account);

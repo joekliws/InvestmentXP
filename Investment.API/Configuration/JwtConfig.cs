@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Principal;
 using System.Text;
 
 namespace Investment.API.Configuration
@@ -24,6 +26,6 @@ namespace Investment.API.Configuration
             });
 
             services.AddAuthorization();
-        }
+        }      
     }
 }

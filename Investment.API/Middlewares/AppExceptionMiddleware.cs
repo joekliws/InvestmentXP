@@ -24,6 +24,18 @@ namespace Investment.API.Middlewares
                 context.Response.StatusCode = status;
                 await context.Response.WriteAsJsonAsync(new { message = e.Message, statusCode = status });
             }
+            catch (UnauthorizedException e)
+            {
+                status = (int)HttpStatusCode.Unauthorized;
+                context.Response.StatusCode = status;
+                await context.Response.WriteAsJsonAsync(new { message = e.Message, statusCode = status });
+            }
+            catch (ForbiddenException e)
+            {
+                status = (int)HttpStatusCode.Forbidden;
+                context.Response.StatusCode = status;
+                await context.Response.WriteAsJsonAsync(new { message = e.Message, statusCode = status });
+            }
             catch (Exception e)
             {
                 status = 500;

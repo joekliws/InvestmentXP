@@ -64,7 +64,7 @@ namespace Investment.Infra.Repository
             return new Account()
             {
                 AccountNumber = accountNumber,
-                userId = newUser.UserId,
+                UserId = newUser.UserId,
                 User = newUser
             };
         }
@@ -90,7 +90,7 @@ namespace Investment.Infra.Repository
         {
             Operation operation = new();
             Account account = await GetByCustomerId(customerId);
-            operation.CodCliente = account.userId;
+            operation.CodCliente = account.UserId;
             operation.Valor = account.Balance;
 
             return operation;
@@ -99,7 +99,6 @@ namespace Investment.Infra.Repository
         public async Task<Account> GetByAccountNumberOrCpf(string accountNumberOrCpf)
         {
             Account account = await _context.Accounts
-                .Include(acc=>acc.User)
                 .FirstAsync(acc => acc.AccountNumber.ToString() == accountNumberOrCpf 
                 || acc.User.Cpf == accountNumberOrCpf);
 
@@ -108,7 +107,7 @@ namespace Investment.Infra.Repository
 
         public async Task<Account> GetByCustomerId(int userId)
         {
-            Account account =  await _context.Accounts.FirstAsync(acc => acc.userId == userId);
+            Account account =  await _context.Accounts.FirstAsync(acc => acc.UserId == userId);
             return account;
         }
 
@@ -122,7 +121,7 @@ namespace Investment.Infra.Repository
 
         public async Task<bool> VerifyAccount(int userId)
         {
-            bool exists = await _context.Accounts.AnyAsync(acc => acc.userId == userId);
+            bool exists = await _context.Accounts.AnyAsync(acc => acc.UserId == userId);
             return exists;
         }
 

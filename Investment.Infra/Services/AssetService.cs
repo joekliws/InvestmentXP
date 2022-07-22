@@ -134,7 +134,7 @@ namespace Investment.Infra.Services
         private void validateTimeOfCommerce()
         {
             var timeOpenning = DateTime.Today.AddHours(13);
-            var timeClosed = DateTime.Today.AddHours(23).AddMinutes(55);
+            var timeClosed = DateTime.Today.AddHours(20).AddMinutes(55);
 
             bool isValid = DateTime.UtcNow >= timeOpenning 
                 && DateTime.UtcNow <= timeClosed 

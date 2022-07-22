@@ -13,10 +13,12 @@ namespace Investment.API.Controllers
     public class ContasController : ControllerBase
     {
         private readonly IAccountService _service;
+        private readonly IAuthService _auth;
 
-        public ContasController(IAccountService service)
+        public ContasController(IAccountService service, IAuthService auth)
         {
             _service = service;
+            _auth = auth;
         }
 
         [AllowAnonymous]
@@ -32,14 +34,22 @@ namespace Investment.API.Controllers
         public async Task<ActionResult> GetCustomerById ()
         {
             int.TryParse(Request.RouteValues["cod-cliente"].ToString(), out int customerId);
+            string token = Request.Headers.Authorization.ToString().Split(' ')[1];
+
+            _auth.ValidateToken(token);
+            _auth.CheckTokenBelongsToUser(token, customerId);
+
             var response = await _service.GetBalance(customerId);
             return Ok(response);
         }
-
         
         [HttpPost("deposito")]
         public async Task<ActionResult> Deposit(Operation operation)
         {
+            string token = Request.Headers.Authorization.ToString().Split(' ')[1];
+            _auth.ValidateToken(token);
+            _auth.CheckTokenBelongsToUser(token, operation.CodCliente);
+
             await _service.Deposit(operation);
             return Ok(new {message = "Operação realizada com sucesso"});
         }
@@ -47,6 +57,10 @@ namespace Investment.API.Controllers
         [HttpPost("saque")]
         public async Task<ActionResult> Withdraw(Operation operation)
         {
+            string token = Request.Headers.Authorization.ToString().Split(' ')[1];
+            _auth.ValidateToken(token);
+            _auth.CheckTokenBelongsToUser(token, operation.CodCliente);
+
             await _service.Withdraw(operation);
             return Ok(new { message = "Operação realizada com sucesso" });
         }

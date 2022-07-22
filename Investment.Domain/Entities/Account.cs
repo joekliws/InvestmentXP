@@ -17,7 +17,7 @@ namespace Investment.Domain.Entities
         public int AccountNumber { get; set; }
 
         [ForeignKey("User")]
-        public int userId { get; set; }
+        public int UserId { get; set; }
        
         public virtual User User { get; set; } = new User();
 
