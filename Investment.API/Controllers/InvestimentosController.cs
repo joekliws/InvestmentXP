@@ -19,10 +19,16 @@ namespace Investment.API.Controllers
         [HttpPost("comprar")]
         public async Task<ActionResult> BuyAsset(AssetCreateDTO asset)
         {
-            bool bought = await _service.Buy(asset);
-            if (bought) return Ok();
+            await _service.Buy(asset);
+            return Ok(new {message = "Compra efetuada com sucesso"});
+        }
 
-            return BadRequest();
+        [HttpPost("vender")]
+        public async Task<ActionResult> SellAsset(AssetCreateDTO asset)
+        {
+            await _service.Sell(asset);
+            return Ok(new { message = "Venda efetuada com sucesso" });
+
         }
     }
 }
