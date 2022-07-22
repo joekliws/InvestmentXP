@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Investment.Domain.DTOs;
 using Investment.Domain.Entities;
+using Investment.Domain.Exceptions;
 using Investment.Infra.Repository;
 using System;
 using System.Collections.Generic;
@@ -31,22 +32,18 @@ namespace Investment.Infra.Services
         }
         public async Task<bool> Buy(AssetCreateDTO asset)
         {
-            bool accountExists, assetsExists, isValid, assetBought = false;
+            validateAsset(asset);
 
             // Quantidade de ativo a ser comprada não pode ser maior que a quantidade disponível na corretora
             // Compra de Ativo de ativo não pode ser feita fora dos horarios 1:00pm-8:55pm(UTC) 10:00 as 17:55(UTC-3)
             // Compra de Ativo de ativo não pode ser feita no sábado nem domingo
-            accountExists = await _accountRepository.VerifyAccount(asset.CodCliente);
-            assetsExists = await _repository.VerifyAsset(asset.CodAtivo);
-            
-            isValid = validateAsset(asset) 
-                && validateBalance(asset) 
-                && validateTimeOfCommerce()
-                && accountExists
-                && assetsExists;
+
+            validateBalance(asset);
+            validateTimeOfCommerce();
+               
 
             // Subtrair do volume do ativo e da conta do cliente
-            if (isValid) assetBought = await _repository.BuyAsset(asset);
+            bool assetBought = await _repository.BuyAsset(asset);
 
             return assetBought;
 
@@ -54,27 +51,26 @@ namespace Investment.Infra.Services
 
         public async Task<bool> Sell(AssetCreateDTO asset)
         {
-            bool accountExists, assetsExists, isValid, assetSold = false;
 
             // Quantidade de ativo a ser vendida não pode ser maior que a quantidade disponível na carteira
             // Venda de Ativo de ativo não pode ser feita fora dos horarios 1:00pm-8:55pm(UTC) 10:00 as 17:55(UTC-3)
             // Venda de Ativo de ativo não pode ser feita no sábado nem domingo
-            accountExists = await _accountRepository.VerifyAccount(asset.CodCliente);
-            assetsExists = await _repository.VerifyAsset(asset.CodAtivo);
-
-            isValid = validateAsset(asset)
-                && validateTimeOfCommerce()
-                && accountExists
-                && assetsExists;
+            validateAsset(asset, isSelling:true);
+            validateWallet(asset);
+            validateTimeOfCommerce();
+                
+                
 
             // Adicionar da conta do cliente
-            if (isValid) assetSold = await _repository.SellAsset(asset);
+            bool assetSold = await _repository.SellAsset(asset);
 
             return assetSold;
         }
 
         public async Task<List<CustomerAssetReadDTO>> GetAssetsByCustomer(int customerId)
         {
+            validatePropertyExists(customerId: customerId);
+
             List<UserAsset> assets = await _repository.GetAssetsByCustomer(customerId);
             var response = _mapper.Map<List<CustomerAssetReadDTO>>(assets);
             return response;
@@ -82,33 +78,60 @@ namespace Investment.Infra.Services
 
         public AssetReadDTO GetAssetById(int id)
         {
+            validatePropertyExists(assetId: id);
+
             var asset = _repository.GetAssetById(id).Result;
             var response = _mapper.Map<AssetReadDTO>(asset);
             return response;
         }
 
-        private bool validateAsset(AssetCreateDTO cmd)
+        private void validateAsset(AssetCreateDTO cmd, bool isSelling = false)
         {
 
-            bool isValid = cmd.CodCliente > 0 
-                && cmd.CodAtivo > 0 
-                && cmd.QtdeAtivo > 0 
-                && _accountRepository.VerifyAccount(cmd.CodCliente).Result
-                && _repository.VerifyAsset(cmd.CodAtivo).Result;
+            bool isValid = cmd.CodCliente > 0
+                && cmd.CodAtivo > 0
+                && cmd.QtdeAtivo > 0;
 
-            return isValid;
+
+            bool customerNotHaveAsset = !_repository.VerifyCustomerBoughtAsset(cmd.CodAtivo, cmd.CodCliente).Result;
+
+
+            if (!isValid) throw new InvalidPropertyException("dados inválidos");
+
+            if (isSelling && customerNotHaveAsset) throw new NotFoundException("Cliente não possui esse ativo na carteira");
+
+        }
+
+        private void validatePropertyExists(int customerId = 0, int assetId = 0)
+        {
+            bool accountNotExists = !_accountRepository.VerifyAccount(customerId).Result;
+            bool assetNotExists = !_repository.VerifyAsset(assetId).Result;
+
+            if (accountNotExists && customerId > 0) throw new NotFoundException("Conta não encontrada");
+
+            if (assetNotExists && assetId > 0) throw new NotFoundException("Ativo não encontrada");
 
         }
     
-        private bool validateBalance(AssetCreateDTO cmd)
+        private void validateBalance(AssetCreateDTO cmd)
         {
             Asset asset = _repository.GetAssetById(cmd.CodAtivo).Result;
             Account account = _accountRepository.GetByCustomerId(cmd.CodCliente).Result;
-            bool hasValue = account.Balance > asset.Price * cmd.QtdeAtivo && asset.Volume > cmd.QtdeAtivo;
-            return hasValue;
+
+            if (account.Balance < asset.Price * cmd.QtdeAtivo) throw new InvalidPropertyException("Saldo insuficiente");
+
+            if (asset.Volume < cmd.QtdeAtivo) throw new InvalidPropertyException("Ativo não disponível");
         }
-    
-        private bool validateTimeOfCommerce()
+
+        private void validateWallet(AssetCreateDTO cmd)
+        {
+            var assets = _repository.GetAssetsByCustomer(cmd.CodCliente).Result.Where(ua=>ua.AssetId == cmd.CodAtivo && ua.UtcSoldAt == null);
+            decimal assetsQty = assets.Sum(a => a.Quantity);
+
+            if (assetsQty < cmd.QtdeAtivo) throw new InvalidPropertyException("Cliente não possui quantidade de ativos suficiente"); 
+        }
+
+        private void validateTimeOfCommerce()
         {
             var timeOpenning = DateTime.Today.AddHours(13);
             var timeClosed = DateTime.Today.AddHours(20).AddMinutes(55);
@@ -118,7 +141,7 @@ namespace Investment.Infra.Services
                 && !DateTime.Today.DayOfWeek.Equals(DayOfWeek.Saturday) 
                 && !DateTime.Today.DayOfWeek.Equals(DayOfWeek.Sunday);
 
-            return isValid;
+            if (!isValid) throw new InvalidPropertyException("Mercado fechado");
            
         }
     }

@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using Investment.API.Middlewares;
 using Investment.Infra.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +14,9 @@ namespace Investment.API.Configuration
                 string connectionStr = configuration.GetConnectionString("DefaultConnection");
                 options.UseSqlServer(connectionStr, assembly => assembly.MigrationsAssembly("Investment.API"));
             });
+
+            services.AddTransient<AppExceptionMiddleware>();
+
             services.AddControllers()
                 .AddJsonOptions(options =>
                     {
@@ -37,6 +41,8 @@ namespace Investment.API.Configuration
             // Configure the HTTP request pipeline.
 
             app.UseHttpsRedirection();
+
+            app.UseMiddleware<AppExceptionMiddleware>();
 
             app.UseAuthorization();
 

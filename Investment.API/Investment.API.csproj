@@ -24,10 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Middlewares\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Investment.Domain\Investment.Domain.csproj" />
     <ProjectReference Include="..\Investment.Infra\Investment.Infra.csproj" />
   </ItemGroup>

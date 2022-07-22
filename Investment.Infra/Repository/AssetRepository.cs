@@ -18,6 +18,7 @@ namespace Investment.Infra.Repository
         Task<bool> BuyAsset(AssetCreateDTO cmd);
         Task<bool> SellAsset(AssetCreateDTO cmd);
         Task<bool> VerifyAsset(int id);
+        Task<bool> VerifyCustomerBoughtAsset(int assetId, int customerId);
     }
 
     public class AssetRepository : IAssetRepository
@@ -135,6 +136,12 @@ namespace Investment.Infra.Repository
         public async Task<bool> VerifyAsset(int id)
         {
             bool exists = await _context.Assets.AnyAsync(acc => acc.AssetId == id);
+            return exists;
+        }
+
+        public async Task<bool> VerifyCustomerBoughtAsset(int id, int customerId)
+        {
+            bool exists = await _context.UserAssets.AnyAsync(acc => acc.AssetId == id && acc.UserId == customerId && acc.UtcSoldAt == null);
             return exists;
         }
     }
