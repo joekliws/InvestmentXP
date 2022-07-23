@@ -91,7 +91,7 @@ namespace Investment.Infra.Repository
             Operation operation = new();
             Account account = await GetByCustomerId(customerId);
             operation.CodCliente = account.UserId;
-            operation.Valor = account.Balance;
+            operation.Saldo = account.Balance;
 
             return operation;
         }

@@ -9,6 +9,6 @@ namespace Investment.Domain.Helpers
     public class Operation
     {
         public int CodCliente { get; set; }
-        public decimal Valor { get; set; }
+        public decimal Saldo { get; set; }
     }
 }

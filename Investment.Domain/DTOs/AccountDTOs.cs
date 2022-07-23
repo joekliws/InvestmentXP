@@ -30,6 +30,7 @@ namespace Investment.Domain.DTOs
 
     public class AccountCreateDTO : UserReadDTO
     {
+        [Required, MaxLength(8), MinLength(6)]
         public string Password { get; set; } = string.Empty;
     }
 

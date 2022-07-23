@@ -37,7 +37,7 @@ namespace Investment.Infra.Services
             await validateOperation(operation);
             var account = await _repository.GetByCustomerId(operation.CodCliente);
             
-            account.Balance += operation.Valor;
+            account.Balance += operation.Saldo;
             await _repository.UpdateBalance(account);          
         }
 
@@ -59,7 +59,7 @@ namespace Investment.Infra.Services
             Account account = await _repository.GetByCustomerId(operation.CodCliente);
             validateBalance(operation, account);
 
-            account.Balance -= operation.Valor;
+            account.Balance -= operation.Saldo;
             await _repository.UpdateBalance(account);         
         }
 
@@ -67,7 +67,7 @@ namespace Investment.Infra.Services
         {
             bool accountExists = await _repository.VerifyAccount(operation.CodCliente);
             
-            if (operation.Valor <= 0)
+            if (operation.Saldo <= 0)
                 throw new InvalidPropertyException(ErrorMessage.VALUE_LESS_ZERO);     
             if (!accountExists)
                 throw new NotFoundException(ErrorMessage.ACCOUNT_NOT_FOUND);     
@@ -76,7 +76,7 @@ namespace Investment.Infra.Services
         private void validateBalance(Operation operation, Account account)
         {
 
-            if (operation.Valor > account.Balance)
+            if (operation.Saldo > account.Balance)
                 throw new InvalidPropertyException(ErrorMessage.INVALID_BALANCE);
             
         }
