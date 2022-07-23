@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Investment.Domain.Constants;
 using Investment.Domain.DTOs;
 using Investment.Domain.Entities;
 using Investment.Domain.Exceptions;
@@ -33,65 +34,57 @@ namespace Investment.Infra.Services
 
         public async Task Deposit(Operation operation)
         {
-
-                // verfificar se usuario esta logado
-
-                // verificar se o token é valido
-
-                // Quantidade a ser depositada não poderá ser negativa ou igual a zero.
-               await validateOperation(operation);
-                    var account = await _repository.GetByCustomerId(operation.CodCliente);
-                    account.Balance += operation.Valor;
-               await _repository.UpdateBalance(account);          
+            await validateOperation(operation);
+            var account = await _repository.GetByCustomerId(operation.CodCliente);
+            
+            account.Balance += operation.Valor;
+            await _repository.UpdateBalance(account);          
         }
 
         public async Task<Operation> GetBalance(int custmerId)
         {
             Operation operation = new();
             var validUser = await _repository.VerifyAccount(custmerId);
+            
             if (validUser)
                 operation = await _repository.GetBalance(custmerId);
+            
             return operation;
         }
 
         public async Task Withdraw(Operation operation)
         {
 
-                // verfificar se usuario esta logado
+            await validateOperation(operation);
+            Account account = await _repository.GetByCustomerId(operation.CodCliente);
+            validateBalance(operation, account);
 
-                // verificar se o token é valido
-
-                // se o valor for maior que 0 e a diferenca entre o balance e o valor for igual ou maior que 0 retira valor do Balance do usuario
-
-                // Quantidade a ser sacada não poderá ser maior que o saldo da conta; não pode ser negativa e não pode ser igual a zero
-                await validateOperation(operation);
-                Account account = await _repository.GetByCustomerId(operation.CodCliente);
-                validateBalance(operation, account);
-
-                account.Balance -= operation.Valor;
-                await _repository.UpdateBalance(account);         
+            account.Balance -= operation.Valor;
+            await _repository.UpdateBalance(account);         
         }
 
         private async Task validateOperation(Operation operation)
         {
             bool accountExists = await _repository.VerifyAccount(operation.CodCliente);
             
-            if (operation.Valor <= 0 || !accountExists)
-                throw new InvalidPropertyException("dados inválidos");     
+            if (operation.Valor <= 0)
+                throw new InvalidPropertyException(ErrorMessage.VALUE_LESS_ZERO);     
+            if (!accountExists)
+                throw new NotFoundException(ErrorMessage.ACCOUNT_NOT_FOUND);     
         }
 
         private void validateBalance(Operation operation, Account account)
         {
 
             if (operation.Valor > account.Balance)
-                throw new InvalidPropertyException("Valor a ser retirado não pode ser maior do que da carteira");
+                throw new InvalidPropertyException(ErrorMessage.INVALID_BALANCE);
             
         }
 
         public async Task<AccountReadDTO> CreateAccount(AccountCreateDTO cmd)
         {
             Account newAccount = await _repository.CreateAccount(cmd);
-            if (newAccount == null) throw new InvalidPropertyException("Houve algum problema ao criar conta");
+            if (newAccount == null) throw new InvalidPropertyException(ErrorMessage.ACCOUNT_NOT_CREATED);
             AccountReadDTO response = _mapper.Map<AccountReadDTO>(newAccount);
             return response;
 

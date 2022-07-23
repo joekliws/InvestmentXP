@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Investment.Domain.Constants;
 using Investment.Domain.DTOs;
 using Investment.Domain.Entities;
 using Investment.Domain.Exceptions;
@@ -34,30 +35,17 @@ namespace Investment.Infra.Services
         public async Task Buy(AssetCreateDTO asset)
         {
             await validateAsset(asset);
-
-            // Quantidade de ativo a ser comprada não pode ser maior que a quantidade disponível na corretora
-            // Compra de Ativo de ativo não pode ser feita fora dos horarios 1:00pm-8:55pm(UTC) 10:00 as 17:55(UTC-3)
-            // Compra de Ativo de ativo não pode ser feita no sábado nem domingo
-
             await validateBalance(asset);
             validateTimeOfCommerce();          
-            // Subtrair do volume do ativo e da conta do cliente
             await _repository.BuyAsset(asset);
         }
 
         public async Task Sell(AssetCreateDTO asset)
         {
-
-            // Quantidade de ativo a ser vendida não pode ser maior que a quantidade disponível na carteira
-            // Venda de Ativo de ativo não pode ser feita fora dos horarios 1:00pm-8:55pm(UTC) 10:00 as 17:55(UTC-3)
-            // Venda de Ativo de ativo não pode ser feita no sábado nem domingo
             await validateAsset(asset, isSelling:true);
             await validateWallet(asset);
             validateTimeOfCommerce();
-                
-                
 
-            // Adicionar da conta do cliente
             await _repository.SellAsset(asset);
         }
 
@@ -74,8 +62,8 @@ namespace Investment.Infra.Services
         {
             var asset = await _repository.GetAssetById(id);
             validateAssetExists(id, asset);
-
             var response = _mapper.Map<AssetReadDTO>(asset);
+            
             return response;
         }
 
@@ -85,39 +73,46 @@ namespace Investment.Infra.Services
                 && cmd.CodAtivo > 0
                 && cmd.QtdeAtivo > 0;
 
-            bool customerNotHaveAsset = !await _repository.VerifyCustomerBoughtAsset(cmd.CodAtivo, cmd.CodCliente);
+            bool customerNotHaveAsset = !await _repository
+            .VerifyCustomerBoughtAsset(cmd.CodAtivo, cmd.CodCliente);
 
-            if (!isValid) throw new InvalidPropertyException("dados inválidos");
+            if (!isValid) 
+                throw new InvalidPropertyException("dados inválidos");
 
-            if (isSelling && customerNotHaveAsset) throw new NotFoundException("Cliente não possui esse ativo na carteira");
-
+            if (isSelling && customerNotHaveAsset) 
+                throw new NotFoundException("Cliente não possui esse ativo na carteira");
         }
 
         private async Task validateAccountExists(int customerId)
         {
-            if (customerId <= 0) throw new InvalidPropertyException("Conta não encontrada. ID inválido");
+            if (customerId <= 0)
+                throw new InvalidPropertyException(ErrorMessage.VALUE_LESS_ZERO);
 
             bool accountExists = await _accountRepository.VerifyAccount(customerId);
-            if (!accountExists) throw new NotFoundException("Conta não encontrada com ID informado");
+            
+            if (!accountExists)
+                throw new NotFoundException(ErrorMessage.ACCOUNT_NOT_FOUND);
 
         }
 
         private void validateAssetExists(int id, Asset? asset)
         {
-            if (id <= 0) throw new InvalidPropertyException("Ativo não encontrado. ID inválido");
+            if (id <= 0) 
+                throw new InvalidPropertyException(ErrorMessage.VALUE_LESS_ZERO);
 
-            if (asset == null) throw new NotFoundException("Ativo não encontrado com ID informado");
+            if (asset == null) 
+                throw new NotFoundException(ErrorMessage.ASSET_NOT_FOUND);
 
         }
 
         private async Task validateBalance(AssetCreateDTO cmd)
         {
-            Asset asset = await _repository.GetAssetById(cmd.CodAtivo);
+            Asset? asset = await _repository.GetAssetById(cmd.CodAtivo);
             Account account = await _accountRepository.GetByCustomerId(cmd.CodCliente);
 
-            if (account.Balance < asset.Price * cmd.QtdeAtivo) throw new InvalidPropertyException("Saldo insuficiente");
+            if (account.Balance < asset?.Price * cmd.QtdeAtivo) throw new InvalidPropertyException(ErrorMessage.OUT_OF_BALANCE);
 
-            if (asset.Volume < cmd.QtdeAtivo) throw new InvalidPropertyException("Ativo não disponível");
+            if (asset?.Volume < cmd.QtdeAtivo) throw new InvalidPropertyException(ErrorMessage.ASSET_UNAVAILABLE);
         }
 
         private async Task validateWallet(AssetCreateDTO cmd)
@@ -128,7 +123,7 @@ namespace Investment.Infra.Services
             decimal assetsQty = assets.Sum(a => a.Quantity);
 
             if (assetsQty < cmd.QtdeAtivo) 
-                throw new InvalidPropertyException("Cliente não possui quantidade de ativos suficiente"); 
+                throw new InvalidPropertyException(ErrorMessage.OUT_OF_ASSET); 
         }
 
         private void validateTimeOfCommerce()
@@ -141,7 +136,7 @@ namespace Investment.Infra.Services
                 && !DateTime.Today.DayOfWeek.Equals(DayOfWeek.Saturday) 
                 && !DateTime.Today.DayOfWeek.Equals(DayOfWeek.Sunday);
 
-            if (!isValid) throw new InvalidPropertyException("Mercado fechado");
+            if (!isValid) throw new InvalidPropertyException(ErrorMessage.MARKET_CLOSED);
            
         }
     }

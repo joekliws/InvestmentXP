@@ -1,4 +1,5 @@
-﻿using Investment.Domain.Entities;
+﻿using Investment.Domain.Constants;
+using Investment.Domain.Entities;
 using Investment.Domain.Exceptions;
 using Investment.Infra.Repository;
 using Microsoft.Extensions.Configuration;
@@ -43,7 +44,7 @@ namespace Investment.Infra.Services
         {
             bool isPasswordCorrect = await _repository.VerifyUserCredentials(userLogin, password);
 
-            if (!isPasswordCorrect) throw new UnauthorizedException("Dados Inválidos ou inexistentes");
+            if (!isPasswordCorrect) throw new UnauthorizedException(ErrorMessage.INVALID_LOGIN);
 
             Account account = await _accountRepository.GetByAccountNumberOrCpf(userLogin);
 
@@ -59,13 +60,6 @@ namespace Investment.Infra.Services
 
         public string GenerateToken(int accountId)
         {
-            // gerar a lista de claims
-            // gerar a chave
-            // gerar as credenciais
-            // criar o token
-            // retornar o token
-
-
             List<Claim> claims = new()
             {
                 new Claim(ClaimTypes.Sid, accountId.ToString())
@@ -101,7 +95,7 @@ namespace Investment.Infra.Services
             bool isValid = jwt.Claims.Any(claim => claim.Type == ClaimTypes.Sid && claim.Value == userId.ToString());
 
             if (!isValid)
-                throw new ForbiddenException("Token invalido. Ou sem permissão");
+                throw new ForbiddenException(ErrorMessage.TOKEN_INVALID);
 
         }
 

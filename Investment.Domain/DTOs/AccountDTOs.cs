@@ -1,10 +1,4 @@
-﻿using Investment.Domain.Entities;
-using Investment.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Investment.Domain.Enums;
 
 namespace Investment.Domain.DTOs
 {
@@ -19,14 +13,18 @@ namespace Investment.Domain.DTOs
 
     public class UserReadDTO
     {
+        [Required, MinLength(3), MaxLength(50)]
         public string FirstName { get; set; } = string.Empty;
 
+        [Required, MinLength(3), MaxLength(150)]
         public string LastName { get; set; } = string.Empty;
 
         public string? PreferedName { get; set; }
 
+        [Required]
         public RiskTolerance InvestorStyle { get; set; }
 
+        [Required, MinLength(11), MaxLength(11)]
         public string Cpf { get; set; } = string.Empty;
     }
 
